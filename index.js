@@ -2,8 +2,9 @@ require("dotenv").config()
 // / importing necessary dependencies
 const express = require("express")
 const mongoose = require("mongoose")
-
 const userRouter = require("./Routes/user")
+const applicationRouter = require("./Routes/application")
+
 
 // starting up express
 const app = express()
@@ -26,9 +27,9 @@ mongoose.connect(process.env.MONGO_URI)
     
 })
 
-
 app.use(express.json())
 app.use("/api/user",userRouter)
+app.use("/api/application",applicationRouter)
 
 
 
