@@ -37,6 +37,9 @@ const userSchema = new Schema({
 // applying bcrypt
 userSchema.pre('save', async function(next){
 try{
+    // salt makes the hash unpredictable and protect against password-cracking techniques
+    // the value in the salt(10) means round the more rounds the more cpu time takes and more encrypted password from brute-forces attacks
+    // Even if passwords share the same initial characters, the salt ensures that each password is hashed differently
 const salt  = await bcrypt.genSalt(10)
 const hashedPassword = await bcrypt.hash(this.password, salt)
 this.password = hashedPassword
