@@ -1,36 +1,25 @@
-require("dotenv").config()
-// / importing necessary dependencies
-const express = require("express")
-const mongoose = require("mongoose")
-const userRouter = require("./Routes/user")
-const applicationRouter = require("./Routes/application")
+const dotenv = require("dotenv"); //This loads environment variables from a .env file into process.env for secure storage of sensitive data (e.g., database URL, JWT secret).
+// importing necessary dependencies
+const express = require("express");
+const connectToDB = require("./src/config/db");
+const cors = require("cors"); //This enables Cross-Origin Resource Sharing with your frontend.
+const userRouter = require("./src/routes/auth.js")
 
+// Initialize environment variables
+dotenv.config();
 
 // starting up express
-const app = express()
+const app = express();
 
-// middle ware
-app.use((req,res,next)=>{
-    console.log(req.path,req.method);
-    next()
-})
+// Connect to the database
+connectToDB();
 
-// connecting to db
-mongoose.connect(process.env.MONGO_URI)
-.then(()=>{
-    app.listen(process.env.PORT,()=>{
-        console.log("connected to db and running on port", process.env.PORT);
-    })
-})
-.catch((err)=>{
-    console.log(err);
-    
-})
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-app.use(express.json())
-app.use("/api/user",userRouter)
-app.use("/api/application",applicationRouter)
+// Routes
+app.use("/api/auth", userRouter);
 
-
-
-
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
