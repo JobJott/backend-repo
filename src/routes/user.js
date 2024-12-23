@@ -1,51 +1,23 @@
-// const express = require("express")
-// const User = require("../Models/userSchema")
-// const bcrypt = require("bcrypt")
+// This file handles the routes for user authentication, including updating, getting, finding and deleting user profile.
 
-// const router = express.Router();
+const express = require("express");
+const router = express.Router();
+const userController = require("../controllers/userController");
+const verifyToken = require("../middleware/authValidation");
 
-// // end points
-// router.get("/",(req,res)=>{
-// res.json({mssg:"all details"})
-// })
+// get user profile
+router.get("/profile", verifyToken, userController.getUserProfile);
 
-// // user login
-// router.post("/login",async(req,res)=>{
-// const {emailAddress, password} = req.body
-// try {
-//     // Find the user by email address
-//     const user = await User.findOne({ emailAddress});
-//     if (!user) {
-//         return res.status(404).json({ message: 'User not found' });
-//     }   
+// update user profile
+router.put("/profile", verifyToken, userController.updateUserProfile);
 
-//     // comparing if password matches
-//     const PasswordMatch = await bcrypt.compare(password, user.password);
-//     if (!PasswordMatch) {
-//         return res.status(401).json({ message: 'Invalid password' });
-//     }
-//      // Successful login
-//     return res.status(200).json({ message: 'Login successful' });
+// delete user profile
+router.delete("/profile", verifyToken, userController.deleteUserProfile);
 
-// } catch (err) {
-//     console.error('Error during login:', err);
-//     return res.status(500).json({ message: 'Internal server error' });
-// }
-// });
+// get all users
+router.get("/", verifyToken, userController.getAllUsers);
 
-// // user registration
-// router.post("/register",async(req,res)=>{
+//get user by id
+router.get("/:id", verifyToken, userController.getSingleUser);
 
-//     // destructured the schemas and assigned to req.body
-//     const {firstname,lastname,emailAddress,password,contactAddress,phoneNumber}=req.body
-//     try{
-//         // created a new schema for individual user
-//         const user = await User.create({firstname,lastname,emailAddress,password,contactAddress,phoneNumber})
-//         res.status(200).json(user)
-//     }
-//     catch(error){
-//         res.status(400).json({error:error.message})
-
-//     }
-// })
-// module.exports = router
+module.exports = router;

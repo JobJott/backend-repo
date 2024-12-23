@@ -1,8 +1,14 @@
+// This file defines how user data is stored in the database (like a blueprint). It includes fields like name, email, and password. It also has a feature to securely hash passwords(Before saving a user's password, it is hashed (encrypted) to protect it. This way, even if someone gains access to the database, they can't easily read the passwords.) before saving them to the database, ensuring user passwords are stored safely. The User model is exported to be used in other parts of the application, like the authentication controller and middleware.
+
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs"); //a library used to securely hash (encrypt) passwords.
 
 const UserSchema = new mongoose.Schema({
-  name: {
+  firstName: {
+    type: String,
+    required: true,
+  },
+  lastName: {
     type: String,
     required: true,
   },

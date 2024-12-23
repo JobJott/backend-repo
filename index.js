@@ -1,25 +1,39 @@
-const dotenv = require("dotenv"); //This loads environment variables from a .env file into process.env for secure storage of sensitive data (e.g., database URL, JWT secret).
-// importing necessary dependencies
-const express = require("express");
-const connectToDB = require("./src/config/db");
-const cors = require("cors"); //This enables Cross-Origin Resource Sharing with your frontend.
-const userRouter = require("./src/routes/auth.js")
+// This file is the entry point for your the backend. It sets up and starts the (Express) server, connects to the database, initializes middleware, and configures routes(like login and sign-up).
 
-// Initialize environment variables
+const dotenv = require("dotenv"); //This loads environment variables from a .env file into process.env for secure storage of sensitive data (e.g., database URL, JWT secret).
+
+// importing necessary dependencies
+const express = require("express"); // Framework to build the backend server.
+const connectToDB = require("./src/config/db"); // Function to establish a connection to the database.
+const cors = require("cors"); // Middleware to enable Cross-Origin Resource Sharing between backend and frontend.
+const authRoutes = require("./src/routes/auth.js"); // A route file containing authentication logic for handling user sign-up, login, and related operations.
+const userRoutes = require("./src/routes/user.js"); // A route file containing user-related logic for handling user profile, update, and delete operations.
+const validateUser = require("./src/middleware/authValidation.js"); // Middleware to validate user authentication.
+
+// Activates the settings from the .env file.
 dotenv.config();
 
-// starting up express
+// Sets up the Express app so we can use it for the server.
 const app = express();
 
-// Connect to the database
+// Connects to the database so we can store and retrieve data.
 connectToDB();
 
-// Middleware
-app.use(cors());
+const corsOptions = {
+  origin: "http://localhost:5173", // Replace with the URL of your frontend
+  credentials: true, // Allow credentials (e.g., cookies)
+};
+
+// Lets the app handle requests from the frontend (even if the frontend is on a different website).
+app.use(cors(corsOptions));
+
+// Lets the app understand and handle data sent in JSON format.
 app.use(express.json());
 
-// Routes
-app.use("/api/auth", userRouter);
+// Define a route for authentication-related API endpoints.
+app.use("/api/auth", authRoutes);
+app.use("/api/user", validateUser, userRoutes);
 
+// Decides which port the app will run on. If no port is set in the .env file, it defaults to 8080.
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
