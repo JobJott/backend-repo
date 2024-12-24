@@ -4,6 +4,9 @@ const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
+// Enable or disable debug logs
+const DEBUG = true;
+
 // Register user
 const registerUser = async (req, res) => {
   const { firstName, lastName, email, password } = req.body; // Get user data from the request body
@@ -28,10 +31,12 @@ const registerUser = async (req, res) => {
       expiresIn: "1h",
     });
 
-    console.log("Generated Token:", token);
+    if (DEBUG) console.log("Generated Token:", token);
 
     // Respond with the user data and their token, user created successfully
-    res.status(201).json({ user, token });
+    res
+      .status(201)
+      .json({ user: { firstName, lastName, email }, token, refreshToken });
   } catch (error) {
     res.status(500).json({ message: "Server error", error }); // handle unexpected error
   }
@@ -60,17 +65,62 @@ const loginUser = async (req, res) => {
     }
 
     // Generate a JWT for the logged-in user, also set the expiration for one hour
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
+    const refreshToken = jwt.sign(
+      { id: user._id },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
 
-    console.log("Generated Token:", token);
+    if (DEBUG) console.log("Generated Token:", token);
+    if (DEBUG) console.log("Generated refreshToken:", refreshToken);
 
     // Respond with the user data and their token
-    res.status(200).json({ user, token });
+    res.status(200).json({
+      token,
+      refreshToken,
+      user: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error }); // handle unexpected error
   }
 };
 
-module.exports = { registerUser, loginUser };
+// Refresh token
+const refreshToken = async (req, res) => {
+  const token = req.headers["x-refresh-token"];
+
+  if (!token) {
+    return res.status(401).json({ message: "No refresh token provided" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const newToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    res.status(200).json({ token: newToken });
+  } catch (error) {
+    res
+      .status(403)
+      .json({ message: "Invalid or expired refresh token", error });
+  }
+};
+
+module.exports = { registerUser, loginUser, refreshToken };

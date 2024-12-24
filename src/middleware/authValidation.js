@@ -3,51 +3,49 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
+// Enable or disable debug logs
+const DEBUG = true;
+
 const validateUser = async (req, res, next) => {
   // Check if the Authorization header exists
-  if (req.headers.authorization) {
-    try {
-      // Extract the token from the Authorization header
-      const token = req.headers.authorization.split(" ")[1];
+  const authHeader = req.headers.authorization;
 
-      // Verify the token using your secret key
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({
+      message:
+        "No token provided or invalid token format. Authorization denied.",
+    });
+  }
 
-      // If the token is valid, use the email from the token to find the user in the database
-      if (decoded && decoded.email) {
-        const user = await User.findOne({ emailAddress: decoded.email });
+  try {
+    // Extract the token from the Authorization header
+    const token = authHeader.split(" ")[1];
 
-        if (user) {
-          //If User found, attach user details to the request for further use
-          req.user = user;
-          console.log("Welcome to the site");
-          return next(); // Move to the next middleware or route handler
-        } else {
-          // if User not found in the database tretun an error msg
-          return res
-            .status(403)
-            .json({ message: "Access denied. User not found." });
-        }
-      } else {
-        //if Token is invalid (email not present)
-        return res
-          .status(403)
-          .json({ message: "Access denied. Invalid token." });
-      }
-    } catch (error) {
-      // throw this error if token verification failed (e.g., expired, tampered, etc.)
+    // Verify the token using your secret key
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Ensure the decoded token contains the required data
+    if (!decoded.id) {
+      return res.status(403).json({ message: "Access denied. Invalid token." });
+    }
+
+    // Find the user in the database using the ID from the token
+    const user = await User.findById(decoded.id);
+    if (!user) {
       return res
         .status(403)
-        .json({
-          message: "Access denied. Invalid token.",
-          error: error.message,
-        });
+        .json({ message: "Access denied. User not found." });
     }
-  } else {
-    // No Authorization header provided
+
+    //If User found, attach user details to the request for further use
+    req.user = user;
+    if (DEBUG) console.log("User validated successfully:", user.email);
+    next(); // Move to the next middleware or route handler
+  } catch (error) {
+    console.error("JWT Error:", error.message);
     return res
-      .status(401)
-      .json({ message: "No token provided. Authorization denied." });
+      .status(403)
+      .json({ message: "Access denied. Invalid token.", error: error.message });
   }
 };
 
