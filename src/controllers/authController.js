@@ -7,6 +7,11 @@ const bcrypt = require("bcryptjs");
 // Enable or disable debug logs
 const DEBUG = true;
 
+// Function to get the current timestamp
+const getTimeStamp = () => {
+  return new Date().toISOString(); // Returns the current timestamp in ISO 8601 format
+};
+
 // Register user
 const registerUser = async (req, res) => {
   const { firstName, lastName, email, password } = req.body; // Get user data from the request body
@@ -78,8 +83,11 @@ const loginUser = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    if (DEBUG) console.log("Generated Token:", token);
-    if (DEBUG) console.log("Generated refreshToken:", refreshToken);
+    // Debug log with timestamp
+    if (DEBUG) {
+      console.log(`[${getTimeStamp()}] Generated Token:`, token);
+      console.log(`[${getTimeStamp()}] Generated Refresh Token:`, refreshToken);
+    }
 
     // Respond with the user data and their token
     res.status(200).json({
@@ -114,6 +122,14 @@ const refreshToken = async (req, res) => {
     const newToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
+
+    // Debug log with timestamp
+    if (DEBUG) {
+      console.log(
+        `[${getTimeStamp()}] Generated New Token for Refresh:`,
+        newToken
+      );
+    }
 
     res.status(200).json({ token: newToken });
   } catch (error) {
