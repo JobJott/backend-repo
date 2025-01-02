@@ -92,6 +92,27 @@ exports.updateJob = async (req, res) => {
   }
 };
 
+exports.updateJobStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    const job = await JobApplication.findOneAndUpdate(
+      { _id: id, userId: req.user.id },
+      { status },
+      { new: true }
+    );
+
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    res.status(200).json({ message: "Job status updated successfully", job });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 // Delete a job by ID
 exports.deleteJob = async (req, res) => {
   try {
@@ -221,5 +242,17 @@ exports.getSalaryDetails = async (req, res) => {
     return res
       .status(500)
       .json({ message: "An error occurred while fetching salary details." });
+  }
+};
+// Get all salary ranges
+exports.getAllSalaryRanges = async (req, res) => {
+  try {
+    const salaryRanges = await SalaryRange.find().sort({ createdAt: -1 });
+    res.status(200).json(salaryRanges);
+  } catch (error) {
+    console.error("Error fetching salary ranges:", error);
+    res
+      .status(500)
+      .json({ message: "An error occurred while fetching salary ranges." });
   }
 };

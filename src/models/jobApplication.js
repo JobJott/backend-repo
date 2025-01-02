@@ -24,6 +24,18 @@ const jobApplicationSchema = new mongoose.Schema(
     jobDescription: {
       type: String,
     },
+    status: {
+      type: String,
+      default: "Bookmarked",
+      enum: [
+        "Bookmarked",
+        "Applying",
+        "Applied",
+        "Interviewing",
+        "Negotiating",
+        "Accepted",
+      ],
+    },
   },
   { timestamps: true }
 );

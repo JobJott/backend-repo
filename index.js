@@ -8,7 +8,7 @@ const connectToDB = require("./src/config/db"); // Function to establish a conne
 const cors = require("cors"); // Middleware to enable Cross-Origin Resource Sharing between backend and frontend.
 const authRoutes = require("./src/routes/auth.js"); // A route file containing authentication logic for handling user sign-up, login, and related operations.
 const userRoutes = require("./src/routes/user.js"); // A route file containing user-related logic for handling user profile, update, and delete operations.
-const validateUser = require("./src/middleware/authValidation.js"); // Middleware to validate user authentication.
+const passwordRoutes = require("./src/routes/passwordRoutes.js");
 const jobRoutes = require("./src/routes/job.js");
 
 // Activates the settings from the .env file.
@@ -21,7 +21,7 @@ const app = express();
 connectToDB();
 
 const corsOptions = {
-  origin: "http://localhost:5173", // Replace with the URL of your frontend
+  origin: process.env.CLIENT_URL, // Replace with the URL of your frontend
   credentials: true, // Allow credentials (e.g., cookies)
 };
 
@@ -33,7 +33,8 @@ app.use(express.json());
 
 // Define a route for authentication-related API endpoints.
 app.use("/api/auth", authRoutes);
-app.use("/api/user", validateUser, userRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/password", passwordRoutes);
 app.use("/api/jobs", jobRoutes);
 
 // Decides which port the app will run on. If no port is set in the .env file, it defaults to 8080.
