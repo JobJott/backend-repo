@@ -19,10 +19,10 @@ exports.requestPasswordReset = async (req, res) => {
 
     user.resetToken = token;
     user.resetTokenExpiry = tokenExpiry;
-    await user.save();
+    await user.save({ validateBeforeSave: false });
 
     // Send reset link
-    const resetLink = `${process.env.CLIENT_URL}/reset-password/${token}`;
+    const resetLink = `${process.env.CLIENT_URL}/auth/reset-password/${token}`;
     sendResetEmail(user.email, resetLink);
 
     res.status(200).json({ message: "Password reset link sent." });
@@ -62,17 +62,30 @@ exports.resetPassword = async (req, res) => {
     });
 
     if (!user) {
+      console.log("User not found or token expired.");
       return res.status(400).json({ message: "Invalid or expired token." });
     }
 
-    // Hash and update password
-    user.password = await bcrypt.hash(newPassword, 10);
+    // Log the user before updating
+    console.log("User found:", user);
+
+    // Directly update the password without manually hashing it
+    user.password = newPassword; // Mongoose pre-save hook will handle the hashing
+
+    // Clear the resetToken and resetTokenExpiry
     user.resetToken = undefined;
     user.resetTokenExpiry = undefined;
-    await user.save();
+
+    // Save the user with the new password
+    const updatedUser = await user.save();
+
+    // Log the updated user
+    console.log("User after saving:", updatedUser);
+    console.log("new hashedPassword:", newPassword);
 
     res.status(200).json({ message: "Password reset successful." });
   } catch (error) {
+    console.error("Error resetting password:", error);
     res.status(500).json({ message: "Error resetting password.", error });
   }
 };
