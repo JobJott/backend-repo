@@ -24,6 +24,15 @@ const jobApplicationSchema = new mongoose.Schema(
     jobDescription: {
       type: String,
     },
+    salaryRange: {
+      minSalary: { type: Number, required: false },
+      maxSalary: { type: Number, required: false },
+      currency: { type: String },
+      payPeriod: {
+        type: String,
+        enum: ["Monthly", "Yearly", "Weekly"],
+      },
+    },
     status: {
       type: String,
       default: "Bookmarked",
@@ -39,6 +48,7 @@ const jobApplicationSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-const jobApplication = mongoose.model("jobApplication", jobApplicationSchema);
 
-module.exports = jobApplication;
+const JobApplication = mongoose.model("JobApplication", jobApplicationSchema);
+
+module.exports = JobApplication;

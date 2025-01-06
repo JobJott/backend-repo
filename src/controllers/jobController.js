@@ -1,5 +1,4 @@
 const JobApplication = require("../models/jobApplication");
-const SalaryRange = require("../models/SalaryRange");
 const mongoose = require("mongoose");
 
 exports.addJob = async (req, res) => {
@@ -96,20 +95,25 @@ exports.updateJobStatus = async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
+  // Validate job ID
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid job ID" });
+  }
+
   try {
-    const job = await JobApplication.findOneAndUpdate(
-      { _id: id, userId: req.user.id },
+    const updatedJob = await JobApplication.findByIdAndUpdate(
+      id,
       { status },
       { new: true }
     );
 
-    if (!job) {
+    if (!updatedJob) {
       return res.status(404).json({ message: "Job not found" });
     }
 
-    res.status(200).json({ message: "Job status updated successfully", job });
+    res.status(200).json(updatedJob);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "Failed to update job status", error });
   }
 };
 
@@ -137,33 +141,41 @@ exports.deleteJob = async (req, res) => {
   }
 };
 
+// salaryController.js
+
 // Add salary range to a job
 exports.addSalaryRange = async (req, res) => {
   try {
-    const { jobId, minSalary, maxSalary, currency, payPeriod } = req.body;
+    const { jobId } = req.body;
+    const { minSalary, maxSalary, currency, payPeriod } = req.body;
 
-    if (!minSalary || !maxSalary) {
-      return res.status(400).json({ message: "Salary range is required." });
+    if (!jobId) {
+      return res.status(400).json({ message: "Job ID is required." });
     }
 
-    const salaryRange = new SalaryRange({
-      jobId,
-      userId: req.user.id,
-      minSalary,
-      maxSalary,
-      currency,
-      payPeriod,
-    });
+    const job = await JobApplication.findOneAndUpdate(
+      { _id: jobId, userId: req.user.id },
+      {
+        $set: {
+          "salaryRange.minSalary": minSalary,
+          "salaryRange.maxSalary": maxSalary,
+          "salaryRange.currency": currency,
+          "salaryRange.payPeriod": payPeriod,
+        },
+      },
+      { new: true }
+    );
 
-    const savedSalaryRange = await salaryRange.save();
-    res
-      .status(201)
-      .json({ message: "Salary range added successfully", savedSalaryRange });
+    if (!job) {
+      return res
+        .status(404)
+        .json({ message: "Job not found or not authorized." });
+    }
+
+    res.status(200).json({ message: "Salary range added successfully.", job });
   } catch (error) {
     console.error("Error adding salary range:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred while adding the salary range." });
+    res.status(500).json({ message: "Server error." });
   }
 };
 
@@ -173,86 +185,58 @@ exports.updateSalaryRange = async (req, res) => {
     const { jobId } = req.params;
     const { minSalary, maxSalary, currency, payPeriod } = req.body;
 
-    // Validate ObjectId for jobId
-    if (!mongoose.Types.ObjectId.isValid(jobId)) {
-      return res.status(400).json({ message: "Invalid job ID" });
-    }
+    const updateFields = {};
+    if (minSalary) updateFields.minSalary = minSalary;
+    if (maxSalary) updateFields.maxSalary = maxSalary;
+    if (currency) updateFields.currency = currency;
+    if (payPeriod) updateFields.payPeriod = payPeriod;
 
-    // Find the JobApplication associated with the jobId and check the userId
-    const jobApplication = await JobApplication.findById(jobId);
-
-    if (!jobApplication) {
-      return res.status(404).json({ message: "Job not found" });
-    }
-
-    // Check if the current user is the owner of the job
-    if (jobApplication.userId.toString() !== req.user.id) {
-      return res
-        .status(403)
-        .json({ message: "Not authorized to update this salary range" });
-    }
-
-    // Find the SalaryRange associated with the job and update it
-    const updatedSalaryRange = await SalaryRange.findOneAndUpdate(
-      { jobId: jobId },
+    const job = await JobApplication.findOneAndUpdate(
+      { _id: jobId, userId: req.user.id },
       {
         $set: {
-          minSalary,
-          maxSalary,
-          currency,
-          payPeriod,
+          "salaryRange.minSalary": updateFields.minSalary,
+          "salaryRange.maxSalary": updateFields.maxSalary,
+          "salaryRange.currency": updateFields.currency,
+          "salaryRange.payPeriod": updateFields.payPeriod,
         },
       },
       { new: true }
     );
 
-    if (!updatedSalaryRange) {
+    if (!job) {
       return res
         .status(404)
-        .json({ message: "Salary range not found or not authorized." });
+        .json({ message: "Job not found or not authorized." });
     }
 
-    // Return the updated job's salary range
-    res.status(200).json(updatedSalaryRange);
+    res
+      .status(200)
+      .json({ message: "Salary range updated successfully.", job });
   } catch (error) {
     console.error("Error updating salary range:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred while updating the salary range." });
+    res.status(500).json({ message: "Server error." });
   }
 };
 
-// Fetch salary details for a specific job by jobId
+// Get salary details for a job
 exports.getSalaryDetails = async (req, res) => {
   try {
-    const { jobId } = req.params; // Get jobId from request params
+    const { jobId } = req.params;
+    const job = await JobApplication.findOne(
+      { _id: jobId, userId: req.user.id },
+      { salaryRange: 1 }
+    );
 
-    const salaryDetails = await SalaryRange.findOne({ jobId });
-
-    if (!salaryDetails) {
-      // If no salary range exists, return a message but allow the frontend to proceed
+    if (!job) {
       return res
-        .status(200)
-        .json({ message: "No salary details found for this job" });
+        .status(404)
+        .json({ message: "Job not found or not authorized." });
     }
 
-    return res.status(200).json(salaryDetails);
+    res.status(200).json(job.salaryRange);
   } catch (error) {
     console.error("Error fetching salary details:", error);
-    return res
-      .status(500)
-      .json({ message: "An error occurred while fetching salary details." });
-  }
-};
-// Get all salary ranges
-exports.getAllSalaryRanges = async (req, res) => {
-  try {
-    const salaryRanges = await SalaryRange.find().sort({ createdAt: -1 });
-    res.status(200).json(salaryRanges);
-  } catch (error) {
-    console.error("Error fetching salary ranges:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred while fetching salary ranges." });
+    res.status(500).json({ message: "Server error." });
   }
 };

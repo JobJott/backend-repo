@@ -9,7 +9,6 @@ const {
   addSalaryRange,
   updateSalaryRange,
   getSalaryDetails,
-  getAllSalaryRanges,
   updateJobStatus,
 } = require("../controllers/jobController");
 const authValidation = require("../middleware/authValidation");
@@ -17,8 +16,8 @@ const authValidation = require("../middleware/authValidation");
 // Salary range-related routes
 router.post("/salary-range/add", authValidation, addSalaryRange); // Add salary range
 router.put("/salary-range/:jobId", authValidation, updateSalaryRange); // Update salary range
-router.get("/salary-range/:jobId", authValidation, getSalaryDetails); //Fetch salary details for a specific job
-router.get("/salary-ranges", authValidation, getAllSalaryRanges);
+router.get("/salary-range/:jobId", authValidation, getSalaryDetails); //Get salary range details for a job
+router.patch("/:id/status", authValidation, updateJobStatus); //update job status
 
 // Add a new job
 router.post("/add", authValidation, addJob);
@@ -32,9 +31,6 @@ router.get("/:id", authValidation, getJobById);
 // Update a job by ID
 router.put("/:id", authValidation, updateJob);
 
-//update job status
-router.patch("/:id/status", authValidation, updateJobStatus);
-
 // Delete a job by ID
 router.delete("/:id", authValidation, deleteJob);
 
@@ -43,7 +39,6 @@ router.delete("/:id", authValidation, deleteJob);
  * - POST /salary-range/add: Add salary range
  * - PUT /salary-range/:jobId: Update salary range
  * - GET /salary-range/:jobId: Fetch salary details for a specific job
- * - GET /salary-ranges: Get all salary ranges
  * - POST /add: Add a new job
  * - GET /: Get all jobs for the logged-in user
  * - GET /:id: Get a single job by ID
