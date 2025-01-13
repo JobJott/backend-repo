@@ -18,6 +18,9 @@ exports.addJob = async (req, res) => {
       location,
       jobDescription,
       userId: req.user.id,
+      dates: {
+        saved: new Date(), // Automatically set the "saved" date
+      },
     });
 
     const savedJob = await jobApplication.save();
@@ -269,17 +272,15 @@ exports.updateJobProgress = async (req, res) => {
 exports.updateJobDates = async (req, res) => {
   try {
     const { jobId } = req.params;
-    const datesToUpdate = req.body;
+    const { dateType, dateValue } = req.body;
 
-    // Automatically set the "saved" date if not provided
-    if (!datesToUpdate.saved) {
-      datesToUpdate.saved = new Date();
-    }
+    // Use dot notation to update a specific date field
+    const update = { [`dates.${dateType}`]: dateValue };
 
     // Find the job application by ID and update the dates
     const updatedJob = await JobApplication.findByIdAndUpdate(
       jobId,
-      { $set: { dates: datesToUpdate } },
+      { $set: update },
       { new: true } // Return the updated document
     );
 

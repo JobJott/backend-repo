@@ -58,7 +58,7 @@ const jobApplicationSchema = new mongoose.Schema(
       deadline: { type: Date },
       followUp: { type: Date },
     },
-  },
+  },  
   { timestamps: true }
 );
 
