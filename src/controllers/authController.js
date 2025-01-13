@@ -31,17 +31,13 @@ const registerUser = async (req, res) => {
     // If user doesn't exist, create a new user
     const user = await User.create({ firstName, lastName, email, password });
 
-    // Generate a token for the new user id and set the expiration for the token for 1hr, meaning the user will need to log in again after that
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    // Generate a token for the new user without expiration
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
 
     if (DEBUG) console.log("Generated Token:", token);
 
     // Respond with the user data and their token, user created successfully
-    res
-      .status(201)
-      .json({ user: { firstName, lastName, email }, token, refreshToken });
+    res.status(201).json({ user: { firstName, lastName, email }, token });
   } catch (error) {
     res.status(500).json({ message: "Server error", error }); // handle unexpected error
   }
@@ -69,30 +65,27 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" }); // Send an error message if passwords don't match
     }
 
-    // Generate a JWT for the logged-in user, also set the expiration for one hour
+    // Generate a token for the logged-in user without expiration
     const token = jwt.sign(
       { id: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "1h",
-      }
+      process.env.JWT_SECRET
     );
-    const refreshToken = jwt.sign(
-      { id: user._id },
-      process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: "7d" }
-    );
+
+    // const refreshToken = jwt.sign(
+    //   { id: user._id },
+    //   process.env.REFRESH_TOKEN_SECRET,
+    //   { expiresIn: "7d" }
+    // );
 
     // Debug log with timestamp
     if (DEBUG) {
       console.log(`[${getTimeStamp()}] Generated Token:`, token);
-      console.log(`[${getTimeStamp()}] Generated Refresh Token:`, refreshToken);
+      // console.log(`[${getTimeStamp()}] Generated Refresh Token:`, refreshToken);
     }
 
     // Respond with the user data and their token
     res.status(200).json({
       token,
-      refreshToken,
       user: {
         firstName: user.firstName,
         lastName: user.lastName,
@@ -104,39 +97,40 @@ const loginUser = async (req, res) => {
   }
 };
 
-// Refresh token
-const refreshToken = async (req, res) => {
-  const token = req.headers["x-refresh-token"];
+module.exports = { registerUser, loginUser };
 
-  if (!token) {
-    return res.status(401).json({ message: "No refresh token provided" });
-  }
+// // Refresh token
+// const refreshToken = async (req, res) => {
+//   const token = req.headers["x-refresh-token"];
 
-  try {
-    const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
-    const user = await User.findById(decoded.id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+//   if (!token) {
+//     return res.status(401).json({ message: "No refresh token provided" });
+//   }
 
-    const newToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+//   try {
+//     const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+//     const user = await User.findById(decoded.id);
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
 
-    // Debug log with timestamp
-    if (DEBUG) {
-      console.log(
-        `[${getTimeStamp()}] Generated New Token for Refresh:`,
-        newToken
-      );
-    }
+//     const newToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+//       expiresIn: "1h",
+//     });
 
-    res.status(200).json({ token: newToken });
-  } catch (error) {
-    res
-      .status(403)
-      .json({ message: "Invalid or expired refresh token", error });
-  }
-};
+//     // Debug log with timestamp
+//     if (DEBUG) {
+//       console.log(
+//         `[${getTimeStamp()}] Generated New Token for Refresh:`,
+//         newToken
+//       );
+//     }
 
-module.exports = { registerUser, loginUser, refreshToken };
+//     res.status(200).json({ token: newToken });
+//   } catch (error) {
+//     res
+//       .status(403)
+//       .json({ message: "Invalid or expired refresh token", error });
+//   }
+// };
+

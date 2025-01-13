@@ -45,6 +45,19 @@ const jobApplicationSchema = new mongoose.Schema(
         "Accepted",
       ],
     },
+    progress: {
+      bookmarkedChecked: { type: Boolean, default: false },
+      appliedChecked: { type: Boolean, default: false },
+      setOne: { type: [String], default: [] },
+      setTwo: { type: [String], default: [] },
+      setThree: { type: [String], default: [] },
+    },
+    dates: {
+      applied: { type: Date },
+      saved: { type: Date },
+      deadline: { type: Date },
+      followUp: { type: Date },
+    },
   },
   { timestamps: true }
 );

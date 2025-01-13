@@ -240,3 +240,55 @@ exports.getSalaryDetails = async (req, res) => {
     res.status(500).json({ message: "Server error." });
   }
 };
+
+//update progress
+exports.updateJobProgress = async (req, res) => {
+  const { jobId } = req.params;
+  const { progress } = req.body;
+
+  try {
+    // Find the job application by ID and update its progress field
+    const updatedJob = await JobApplication.findByIdAndUpdate(
+      jobId,
+      { $set: { progress } },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedJob) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    res.status(200).json(updatedJob);
+  } catch (error) {
+    console.error("Error updating job progress:", error);
+    res.status(500).json({ error: "Failed to update job application" });
+  }
+};
+
+// Update job dates by job ID
+exports.updateJobDates = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const datesToUpdate = req.body;
+
+    // Automatically set the "saved" date if not provided
+    if (!datesToUpdate.saved) {
+      datesToUpdate.saved = new Date();
+    }
+
+    // Find the job application by ID and update the dates
+    const updatedJob = await JobApplication.findByIdAndUpdate(
+      jobId,
+      { $set: { dates: datesToUpdate } },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedJob) {
+      return res.status(404).json({ message: "Job application not found." });
+    }
+
+    res.status(200).json(updatedJob);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating job dates.", error });
+  }
+};

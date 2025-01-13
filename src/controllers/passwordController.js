@@ -1,5 +1,4 @@
 const crypto = require("crypto");
-const bcrypt = require("bcryptjs");
 const User = require("../models/user"); // Adjust to your User model
 const { sendResetEmail } = require("../utility/emailService");
 

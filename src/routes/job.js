@@ -10,8 +10,16 @@ const {
   updateSalaryRange,
   getSalaryDetails,
   updateJobStatus,
+  updateJobProgress,
+  updateJobDates,
 } = require("../controllers/jobController");
 const authValidation = require("../middleware/authValidation");
+
+// PUT route to update job dates
+router.put("/dates/:jobId", authValidation, updateJobDates);
+
+//update checkbox progress
+router.put("/:jobId/progress", authValidation, updateJobProgress);
 
 // Salary range-related routes
 router.post("/salary-range/add", authValidation, addSalaryRange); // Add salary range
