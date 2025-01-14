@@ -12,8 +12,16 @@ const {
   updateJobStatus,
   updateJobProgress,
   updateJobDates,
+  updateInterviewDetails,
+  deleteInterviewDetails,
+  getInterviewDetails,
 } = require("../controllers/jobController");
 const authValidation = require("../middleware/authValidation");
+
+// PUT request to update interview details
+router.get("/interview/:jobId", authValidation, getInterviewDetails);
+router.put("/interview/:jobId", authValidation, updateInterviewDetails);
+router.delete("/interview/:jobId", authValidation, deleteInterviewDetails);
 
 // PUT route to update job dates
 router.put("/dates/:jobId", authValidation, updateJobDates);

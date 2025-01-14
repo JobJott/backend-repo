@@ -58,7 +58,24 @@ const jobApplicationSchema = new mongoose.Schema(
       deadline: { type: Date },
       followUp: { type: Date },
     },
-  },  
+    interview: {
+      interviewDate: { type: Date },
+      interviewType: {
+        type: String,
+        enum: [
+          "initial screening",
+          "technical",
+          "work culture",
+          "panel",
+          "other",
+        ],
+      },
+      interviewFormat: {
+        type: String,
+        enum: ["virtual", "phone", "in-person", "other"],
+      },
+    },
+  },
   { timestamps: true }
 );
 

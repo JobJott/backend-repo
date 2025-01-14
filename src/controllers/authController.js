@@ -97,7 +97,15 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser };
+const logOutUser = async (req, res) => {
+  try {
+    res.status(200).json({ message: "User logged out successfully!" });
+  } catch (error) {
+    res.status(500).json({ message: "Error logging out", error });
+  }
+};
+
+module.exports = { registerUser, loginUser, logOutUser };
 
 // // Refresh token
 // const refreshToken = async (req, res) => {
@@ -133,4 +141,3 @@ module.exports = { registerUser, loginUser };
 //       .json({ message: "Invalid or expired refresh token", error });
 //   }
 // };
-

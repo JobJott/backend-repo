@@ -293,3 +293,89 @@ exports.updateJobDates = async (req, res) => {
     res.status(500).json({ message: "Error updating job dates.", error });
   }
 };
+
+// Update Interview Details
+exports.updateInterviewDetails = async (req, res) => {
+  const { jobId } = req.params;
+  const { interviewDate, interviewType, interviewFormat } = req.body;
+
+  try {
+    // Validate jobId
+    if (!jobId) {
+      return res.status(400).json({ message: "Job ID is required." });
+    }
+
+    const updatedJob = await JobApplication.findByIdAndUpdate(
+      jobId,
+      {
+        interview: {
+          interviewDate,
+          interviewType,
+          interviewFormat,
+        },
+      },
+      { new: true }
+    );
+
+    // Check if job application exists
+    if (!updatedJob) {
+      return res.status(404).json({ message: "Job application not found." });
+    }
+
+    // Return updated job details
+    res.status(200).json({
+      message: "Interview details updated successfully.",
+      jobApplication: updatedJob,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to update interview details." });
+  }
+};
+
+// Fetch interview details
+exports.getInterviewDetails = async (req, res) => {
+  const { jobId } = req.params;
+
+  try {
+    if (!jobId) {
+      return res.status(400).json({ message: "Job ID is required." });
+    }
+
+    const jobApplication = await JobApplication.findById(jobId);
+
+    if (!jobApplication) {
+      return res.status(404).json({ message: "Job application not found" });
+    }
+
+    res.status(200).json({ interview: jobApplication.interview });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Delete a job by ID
+exports.deleteInterviewDetails = async (req, res) => {
+  const { jobId } = req.params;
+
+  try {
+    if (!jobId) {
+      return res.status(400).json({ message: "Job ID is required." });
+    }
+
+    const updatedJob = await JobApplication.findByIdAndUpdate(
+      jobId,
+      { $unset: { interview: "" } },
+      { new: true }
+    );
+    if (!updatedJob) return res.status(404).send("Job not found");
+    
+    res.status(200).json({
+      message: "Interview details deleted successfully.",
+      jobApplication: updatedJob,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

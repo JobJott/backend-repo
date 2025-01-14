@@ -1,5 +1,6 @@
 // This file contains a function that checks if a user is authorized to access certain routes. It looks for a token in the request’s headers, verifies the token, and checks if the user exists in the database. If everything checks out, it lets the user continue; if not, it returns an error.
 
+
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
