@@ -15,6 +15,12 @@ const ContactSchema = new mongoose.Schema(
     phoneNumber: { type: String },
     linkedin: { type: String },
     twitter: { type: String },
+    notes: { type: String },
+    jobId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "JobApplication",
+      default: null, // Allows null to indicate no associated job yet
+    },
   },
   { timestamps: true }
 );

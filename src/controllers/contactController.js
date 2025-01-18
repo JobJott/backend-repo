@@ -40,9 +40,21 @@ exports.updateContact = async (req, res) => {
   }
 };
 
+// exports.getAllContacts = async (req, res) => {
+//     try {
+//       const contacts = await Contact.find({ userId: req.user.id });
+//       res.status(200).json(contacts);
+//     } catch (error) {
+//       res.status(500).json({ message: "Error fetching contacts", error });
+//     }
+//   };
 exports.getAllContacts = async (req, res) => {
   try {
-    const contacts = await Contact.find({ userId: req.user.id });
+    const { jobId } = req.query;
+    const filter = { userId: req.user.id };
+    if (jobId) filter.jobId = jobId;
+
+    const contacts = await Contact.find(filter).populate("jobId");
     res.status(200).json(contacts);
   } catch (error) {
     res.status(500).json({ message: "Error fetching contacts", error });
