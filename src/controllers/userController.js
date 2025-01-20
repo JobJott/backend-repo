@@ -1,4 +1,6 @@
+require("dotenv").config();
 const User = require("../models/user");
+const OpenAI = require("openai");
 
 // Get User Profile
 exports.getUserProfile = async (req, res) => {
@@ -72,5 +74,31 @@ exports.getSingleUser = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.generateCoverLetter = async (req, res) => {
+  try {
+    console.log(req.body);
+
+    const openai = new OpenAI({
+      apiKey: process.env.API_KEY, // Load the API key from the .env file
+    });
+
+    const completion = openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      store: true,
+      messages: [
+        {
+          role: "user",
+          content: `Generate a professional cover letter. Hope Odidi is applying for the role of ${req.body.jobTitle} at ${req.body.companyName}.`,
+        },
+      ],
+    });
+
+    completion.then((result) => console.log(result.choices[0].message));
+    res.status(200).json({ message: "Cover letter generated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Cover letter failed" });
   }
 };

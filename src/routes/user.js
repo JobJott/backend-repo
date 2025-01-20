@@ -20,4 +20,10 @@ router.get("/", verifyToken, userController.getAllUsers);
 //get user by id
 router.get("/:id", verifyToken, userController.getSingleUser);
 
+router.post(
+  "/generate-cover-letter",
+  verifyToken,
+  userController.generateCoverLetter
+);
+
 module.exports = router;

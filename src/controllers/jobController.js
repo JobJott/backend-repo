@@ -370,12 +370,48 @@ exports.deleteInterviewDetails = async (req, res) => {
       { new: true }
     );
     if (!updatedJob) return res.status(404).send("Job not found");
-    
+
     res.status(200).json({
       message: "Interview details deleted successfully.",
       jobApplication: updatedJob,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+//status summary
+exports.getStatusSummary = async (req, res) => {
+  const { startDate, endDate } = req.body;
+
+  try {
+    const jobStatuses = await JobApplication.aggregate([
+      {
+        $match: {
+          createdAt: {
+            $gte: new Date(startDate),
+            $lte: new Date(endDate),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const statusSummary = {
+      bookmarked: jobStatuses.find((s) => s._id === "Bookmarked")?.count || 0,
+      applied: jobStatuses.find((s) => s._id === "Applied")?.count || 0,
+      interviewing:
+        jobStatuses.find((s) => s._id === "Interviewing")?.count || 0,
+      negotiating: jobStatuses.find((s) => s._id === "Negotiating")?.count || 0,
+    };
+
+    res.json(statusSummary);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch data" });
   }
 };
