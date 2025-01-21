@@ -12,6 +12,7 @@ const passwordRoutes = require("./src/routes/passwordRoutes.js");
 const jobRoutes = require("./src/routes/job.js");
 const contactRoutes = require("./src/routes/contact.js");
 const goalRoutes = require("./src/routes/goalRoutes.js");
+const weeklyRoutes = require("./src/routes/weekly.js");
 
 // Activates the settings from the .env file.
 dotenv.config();
@@ -40,6 +41,7 @@ app.use("/api/password", passwordRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/goals", goalRoutes);
+app.use("/api/applications", weeklyRoutes);
 
 // Decides which port the app will run on. If no port is set in the .env file, it defaults to 8080.
 const PORT = process.env.PORT || 8080;

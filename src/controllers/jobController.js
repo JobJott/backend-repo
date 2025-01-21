@@ -381,37 +381,35 @@ exports.deleteInterviewDetails = async (req, res) => {
 };
 
 //status summary
-exports.getStatusSummary = async (req, res) => {
-  const { startDate, endDate } = req.body;
+exports.getPipelineStats = async (req, res) => {
+  const { startDate, endDate } = req.query;
+
+  if (!startDate || !endDate) {
+    return res
+      .status(400)
+      .json({ message: "Start and End dates are required" });
+  }
 
   try {
-    const jobStatuses = await JobApplication.aggregate([
+    const pipelineData = await JobApplication.aggregate([
       {
         $match: {
-          createdAt: {
-            $gte: new Date(startDate),
-            $lte: new Date(endDate),
-          },
+          createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) },
         },
       },
       {
         $group: {
-          _id: "$status",
+          _id: "$status", // Group by status
           count: { $sum: 1 },
         },
       },
     ]);
 
-    const statusSummary = {
-      bookmarked: jobStatuses.find((s) => s._id === "Bookmarked")?.count || 0,
-      applied: jobStatuses.find((s) => s._id === "Applied")?.count || 0,
-      interviewing:
-        jobStatuses.find((s) => s._id === "Interviewing")?.count || 0,
-      negotiating: jobStatuses.find((s) => s._id === "Negotiating")?.count || 0,
-    };
+    const totalJobs = pipelineData.reduce((acc, curr) => acc + curr.count, 0);
 
-    res.json(statusSummary);
+    res.status(200).json({ pipelineData, totalJobs });
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch data" });
+    console.error("Error fetching pipeline stats:", error);
+    res.status(500).json({ message: "Failed to fetch data." });
   }
 };

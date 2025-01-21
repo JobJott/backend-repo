@@ -15,12 +15,12 @@ const {
   updateInterviewDetails,
   deleteInterviewDetails,
   getInterviewDetails,
-  getStatusSummary,
+  getPipelineStats,
 } = require("../controllers/jobController");
 const authValidation = require("../middleware/authValidation");
 
 //Status-summary
-router.post("job-status-summary", authValidation, getStatusSummary);
+router.get("/pipeline-stats", getPipelineStats);
 
 // PUT request to update interview details
 router.get("/interview/:jobId", authValidation, getInterviewDetails);
