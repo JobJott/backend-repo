@@ -1,5 +1,6 @@
 const JobApplication = require("../models/jobApplication");
 const mongoose = require("mongoose");
+const User = require("../models/user");
 
 exports.addJob = async (req, res) => {
   try {
@@ -382,19 +383,34 @@ exports.deleteInterviewDetails = async (req, res) => {
 
 //status summary
 exports.getPipelineStats = async (req, res) => {
-  const { startDate, endDate } = req.query;
-
-  if (!startDate || !endDate) {
-    return res
-      .status(400)
-      .json({ message: "Start and End dates are required" });
-  }
-
   try {
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+
+    // Retrieve the user's account creation date
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const startDate = user.createdAt; // User's account creation date
+    const endDate = new Date(); // Current date
+
+    // Define only the required statuses for tracking
+    const validStatuses = [
+      "Bookmarked",
+      "Applied",
+      "Interviewing",
+      "Negotiating",
+    ];
+
     const pipelineData = await JobApplication.aggregate([
       {
         $match: {
-          createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) },
+          userId: userId,
+          createdAt: { $gte: startDate, $lte: endDate },
+          status: {
+            $in: validStatuses,
+          },
         },
       },
       {
@@ -407,7 +423,7 @@ exports.getPipelineStats = async (req, res) => {
 
     const totalJobs = pipelineData.reduce((acc, curr) => acc + curr.count, 0);
 
-    res.status(200).json({ pipelineData, totalJobs });
+    res.status(200).json({ pipelineData, totalJobs, startDate, endDate });
   } catch (error) {
     console.error("Error fetching pipeline stats:", error);
     res.status(500).json({ message: "Failed to fetch data." });

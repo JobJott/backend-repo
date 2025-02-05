@@ -20,7 +20,7 @@ const {
 const authValidation = require("../middleware/authValidation");
 
 //Status-summary
-router.get("/pipeline-stats", getPipelineStats);
+router.get("/pipeline-stats", authValidation, getPipelineStats);
 
 // PUT request to update interview details
 router.get("/interview/:jobId", authValidation, getInterviewDetails);

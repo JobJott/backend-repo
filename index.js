@@ -13,6 +13,7 @@ const jobRoutes = require("./src/routes/job.js");
 const contactRoutes = require("./src/routes/contact.js");
 const goalRoutes = require("./src/routes/goalRoutes.js");
 const weeklyRoutes = require("./src/routes/weekly.js");
+const notificationRoutes = require("./src/routes/notificationRoutes");
 
 // Activates the settings from the .env file.
 dotenv.config();
@@ -29,7 +30,11 @@ const corsOptions = {
 };
 
 // Lets the app handle requests from the frontend (even if the frontend is on a different website).
-app.use(cors(corsOptions));
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 
 // Lets the app understand and handle data sent in JSON format.
 app.use(express.json());
@@ -42,6 +47,7 @@ app.use("/api/jobs", jobRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/goals", goalRoutes);
 app.use("/api/applications", weeklyRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Decides which port the app will run on. If no port is set in the .env file, it defaults to 8080.
 const PORT = process.env.PORT || 8080;

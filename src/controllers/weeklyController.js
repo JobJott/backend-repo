@@ -23,6 +23,7 @@ exports.weeklyController = async (req, res) => {
         $gte: startOfWeek, // Applications updated from the start of the week
         $lte: endOfWeek, // Applications updated up until the current date
       },
+      userId: req.user.id,
     });
 
     // Fetch total applied applications
